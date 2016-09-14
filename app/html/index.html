@@ -1,0 +1,89 @@
+<html>
+	<head>
+		<title>Schnarchbox</title>
+		<link rel="stylesheet" href="./css/materialize.css">
+		<link rel="stylesheet" href="./css/custom.css">
+		<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<meta charset="utf-8">  
+		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+		<script>
+			$(document).ready(function() {
+				var socket = io.connect("http://localhost:3001/");
+
+				socket.emit('preferencesRequest', {
+					userId: 0,
+					userSecret: 'test'
+				});
+
+				socket.on('preferencesAnswer', function(data) {
+					console.log(JSON.stringify(data));
+					data.forEach(function(element, index) {
+						var destination = element.destination;
+						var mode = element.mode;
+						var time = [];
+						element.time.forEach( function(timeElement, index) {
+							if (timeElement < 10) {
+								time[index] = '0' + timeElement;
+							} else {
+								time[index] = timeElement;
+							}
+						});
+						var id = index;
+						var modeLetter;
+
+						switch(mode.charAt(0)) {
+							case 'b':
+								modeLetter = 'F';
+								break;
+							case 'd':
+								modeLetter = 'A';
+								break;
+						}
+
+						$('#list').append('\
+							<li class="collection-header row">\
+			        			<div class="col s3"><h4>' + time[0] + ':' + time[1] + '</h4></div>\
+			        			<div class="col s7"><h4> ' + modeLetter + ' - ' + destination + '</h4></div>\
+			        			<div class="col s1">\
+			        				<div class="switch">\
+			    						<label>\
+			      							<input id="' + id + '" type="checkbox">\
+			      								<span class="lever"></span>\
+			      							</input>\
+			    						</label>\
+			  						</div>\
+			  					</div>\
+			        		</li>\
+						');
+					});
+
+					$( "input" ).change(function() {
+						var status = $(this).prop('checked');
+	  					socket.emit('switch', {
+	  						userId: 0,
+	  						userSecret: 'test',
+	  						switchId: this.id,
+	  						switchStatus: status
+	  					});
+					});
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<nav>
+    		<div class="nav-wrapper">
+      			<a href="#" class="brand-logo">Schnarchbox</a>
+    		</div>
+  		</nav>
+
+			<ul id="list" class="collection with-header">
+      		</ul>
+
+      		<a id="add" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">add</i></a>
+
+    	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.7/js/materialize.min.js"></script>
+	</body>
+</html>
